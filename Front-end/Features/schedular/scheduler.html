@@ -1,0 +1,84 @@
+<!-- scheduler.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scheduler</title>
+  <link rel="stylesheet" href="scheduler.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1> Scheduler</h1>
+      <a class="back-btn" href="/Main/index.html">← Back to Clock</a>
+    </header>
+
+    <div class="layout">
+      <!-- ---------- Add event form ---------- -->
+      <aside class="panel form-panel">
+        <h2>New event</h2>
+
+        <form id="eventForm" novalidate>
+          <label>
+            Title
+            <input id="titleInput" type="text" maxlength="60" placeholder="Team meeting" required />
+          </label>
+
+          <div class="row">
+            <label>
+              Start
+              <input id="startInput" type="time" required />
+            </label>
+            <label>
+              End
+              <input id="endInput" type="time" required />
+            </label>
+          </div>
+
+          <label>
+            Category
+            <select id="categoryInput">
+              <option value="work">Work</option>
+              <option value="personal">Personal</option>
+              <option value="study">Study</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+
+          <p class="error" id="formError" role="alert" hidden></p>
+
+          <button type="submit" class="primary">Add event</button>
+        </form>
+      </aside>
+
+      <!-- ---------- Day view ---------- -->
+      <section class="panel day-panel">
+        <div class="day-head">
+          <button id="prevDay" class="icon-btn" type="button" aria-label="Previous day">‹</button>
+          <input id="datePicker" type="date" aria-label="Select date" />
+          <button id="nextDay" class="icon-btn" type="button" aria-label="Next day">›</button>
+          <button id="todayBtn" class="ghost" type="button">Today</button>
+        </div>
+
+        <div class="day-meta">
+          <span id="dayLabel"></span>
+          <span id="eventCount" class="count"></span>
+        </div>
+
+        <p class="empty" id="emptyState" hidden>
+          No events for this day yet — add one using the form.
+        </p>
+
+        <div class="timeline" id="timeline"></div>
+
+        <div class="day-foot">
+          <button id="clearBtn" class="ghost danger" type="button">Clear this day</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="scheduler.js"></script>
+</body>
+</html>

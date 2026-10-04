@@ -1,0 +1,183 @@
+/* style.css */
+
+/* ---------- Design tokens ---------- */
+:root {
+  --size: min(70vmin, 420px);
+
+  --face-bg: radial-gradient(circle at 50% 35%, #2a2f45, #14161f 70%);
+  --tick-color: rgba(255, 255, 255, 0.35);
+  --tick-hour-color: #8ecae6;
+
+  --hour-hand: #e0e6f0;
+  --minute-hand: #b8c2d6;
+  --second-hand: #ff4d6d;
+
+  --text-color: #e0e6f0;
+}
+
+/* ---------- Page ---------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 30%, #1b1f2e, #0a0c12 70%);
+  color: var(--text-color);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+/* ---------- Clock face ---------- */
+.face {
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--face-bg);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.06),
+    0 24px 60px -12px rgba(0, 0, 0, 0.85),
+    inset 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Tick marks ---------- */
+.tick {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 50%;
+  margin-left: -1px;
+  transform-origin: bottom center;
+  background: linear-gradient(to bottom, var(--tick-color) 0 8px, transparent 8px);
+}
+
+.tick--hour {
+  width: 4px;
+  margin-left: -2px;
+  background: linear-gradient(to bottom, var(--tick-hour-color) 0 15px, transparent 15px);
+}
+
+/* ---------- Hands ---------- */
+.hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  transform-origin: bottom center;
+  border-radius: 999px;
+  z-index: 2;
+  will-change: transform;
+}
+
+.hand--hour {
+  width: 8px;
+  height: 26%;
+  margin-left: -4px;
+  background: var(--hour-hand);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+}
+
+.hand--minute {
+  width: 5px;
+  height: 36%;
+  margin-left: -2.5px;
+  background: var(--minute-hand);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.14);
+}
+
+.hand--second {
+  width: 2px;
+  height: 42%;
+  margin-left: -1px;
+  background: var(--second-hand);
+  box-shadow: 0 0 10px rgba(255, 77, 109, 0.7);
+  z-index: 3;
+}
+
+/* ---------- Center dot ---------- */
+.center-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--second-hand);
+  box-shadow: 0 0 12px rgba(255, 77, 109, 0.6);
+  z-index: 4;
+}
+
+/* ---------- Digital readout ---------- */
+.readout {
+  text-align: center;
+}
+
+.digital {
+  margin: 0;
+  font-size: clamp(1.3rem, 4vmin, 1.8rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--text-color);
+  text-shadow: 0 0 14px rgba(142, 202, 230, 0.35);
+}
+
+.date {
+  margin: 0.35rem 0 0;
+  font-size: clamp(0.75rem, 2.4vmin, 0.95rem);
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+/* ---------- Scheduler link button ---------- */
+.nav-btn {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 10;
+  text-decoration: none;
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(142, 202, 230, 0.18);
+  border-color: rgba(142, 202, 230, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -8px rgba(142, 202, 230, 0.5);
+}
+
+.nav-btn:active {
+  transform: translateY(0);
+}
+
+/* ---------- Accessibility ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hand {
+    transition: none;
+  }
+  .nav-btn {
+    transition: none;
+  }
+}
