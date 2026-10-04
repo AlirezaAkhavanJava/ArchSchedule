@@ -434,3 +434,83 @@ button {
     transition: none !important;
   }
 }
+
+
+/* scheduler.css — append this block at the bottom */
+
+/* ---------- Bulk / repeat scheduling ---------- */
+.optional {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  opacity: 0.6;
+  font-size: 0.9em;
+}
+
+textarea {
+  font: inherit;
+  font-size: 0.92rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  resize: vertical;
+  min-height: 52px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(142, 202, 230, 0.15);
+}
+
+/* The id-based display rules above outrank [hidden], so force it */
+#eventForm [hidden] {
+  display: none !important;
+}
+
+.repeat {
+  margin: 0;
+  padding: 0.75rem 0.8rem 0.85rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.repeat legend {
+  padding: 0 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.repeat-preview {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted);
+  background: rgba(142, 202, 230, 0.08);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
+
+/* Repeating-event badge + description */
+.event-badge {
+  margin-right: 0.35rem;
+  font-size: 0.75em;
+  opacity: 0.85;
+}
+
+.event-desc {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}

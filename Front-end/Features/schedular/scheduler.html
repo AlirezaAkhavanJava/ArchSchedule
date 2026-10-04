@@ -10,7 +10,7 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <h1> Scheduler</h1>
+      <h1>Scheduler</h1>
       <a class="back-btn" href="/Main/index.html">← Back to Clock</a>
     </header>
 
@@ -22,7 +22,13 @@
         <form id="eventForm" novalidate>
           <label>
             Title
-            <input id="titleInput" type="text" maxlength="60" placeholder="Team meeting" required />
+            <input id="titleInput" type="text" maxlength="60" placeholder="Learn Java" required />
+          </label>
+
+          <label>
+            Description <span class="optional">(optional)</span>
+            <textarea id="descriptionInput" rows="2" maxlength="140"
+              placeholder="Chapters 1–3, practice exercises"></textarea>
           </label>
 
           <div class="row">
@@ -45,6 +51,43 @@
               <option value="other">Other</option>
             </select>
           </label>
+
+          <!-- ---------- BULK / REPEAT ---------- -->
+          <fieldset class="repeat">
+            <legend>Repeat</legend>
+
+            <label>
+              Pattern
+              <select id="repeatPattern">
+                <option value="none">Does not repeat</option>
+                <option value="daily">Every day</option>
+                <option value="weekday">Every weekday (Mon–Fri)</option>
+                <option value="weekly">Every week</option>
+                <option value="custom">Custom interval…</option>
+              </select>
+            </label>
+
+            <div class="row" id="intervalRow" hidden>
+              <label>
+                Every
+                <input id="repeatInterval" type="number" min="1" max="30" value="1" />
+              </label>
+              <label>
+                Unit
+                <select id="repeatUnit">
+                  <option value="day">day(s)</option>
+                  <option value="week">week(s)</option>
+                </select>
+              </label>
+            </div>
+
+            <label id="repeatUntilRow" hidden>
+              Repeat until
+              <input id="repeatUntil" type="date" />
+            </label>
+
+            <p class="repeat-preview" id="repeatPreview" hidden></p>
+          </fieldset>
 
           <p class="error" id="formError" role="alert" hidden></p>
 

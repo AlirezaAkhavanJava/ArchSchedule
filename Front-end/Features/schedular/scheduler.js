@@ -9,6 +9,7 @@
   const els = {
     form: $("eventForm"),
     title: $("titleInput"),
+    description: $("descriptionInput"),
     start: $("startInput"),
     end: $("endInput"),
     category: $("categoryInput"),
@@ -22,11 +23,32 @@
     nextDay: $("nextDay"),
     todayBtn: $("todayBtn"),
     clearBtn: $("clearBtn"),
+    // bulk / repeat
+    repeatPattern: $("repeatPattern"),
+    repeatInterval: $("repeatInterval"),
+    repeatUnit: $("repeatUnit"),
+    repeatUntil: $("repeatUntil"),
+    repeatUntilRow: $("repeatUntilRow"),
+    intervalRow: $("intervalRow"),
+    repeatPreview: $("repeatPreview"),
   };
 
   const STORAGE_KEY = "scheduler.events.v1";
+  const MAX_OCCURRENCES = 500;
 
-  /** @type {{id:string, date:string, title:string, start:string, end:string, category:string}[]} */
+  /**
+   * @type {{
+   *   id: string,
+   *   date: string,
+   *   title: string,
+   *   description: string,
+   *   start: string,
+   *   end: string,
+   *   category: string,
+   *   seriesId: string | null,
+   *   repeat: object | null
+   * }[]}
+   */
   let events = loadEvents();
 
   /* ---------- Storage ---------- */
@@ -117,6 +139,118 @@
     els.end.value = hhmm(end);
   }
 
+  /* ---------- Bulk / repeat engine ---------- */
+  function dowOf(iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d).getDay(); // 0 = Sunday
+  }
+
+  function stepDate(iso, pattern, interval, unit) {
+    if (pattern === "weekly") return addDays(iso, 7);
+    if (pattern === "custom") {
+      return addDays(iso, unit === "week" ? interval * 7 : interval);
+    }
+    return addDays(iso, 1); // daily + weekday
+  }
+
+  /**
+   * Returns every occurrence date (ISO yyyy-mm-dd) from startISO up to and
+   * including untilISO. Stops early once MAX_OCCURRENCES + 1 is reached so the
+   * caller can detect "too many".
+   */
+  function buildOccurrences(startISO, pattern, interval, unit, untilISO) {
+    const dates = [];
+    let cursor = startISO;
+    let steps = 0;
+
+    while (
+      cursor <= untilISO &&
+      dates.length <= MAX_OCCURRENCES &&
+      steps < 5000
+    ) {
+      if (pattern === "weekday") {
+        const dow = dowOf(cursor);
+        if (dow !== 0 && dow !== 6) dates.push(cursor);
+      } else {
+        dates.push(cursor);
+      }
+
+      cursor = stepDate(cursor, pattern, interval, unit);
+      steps++;
+    }
+
+    return dates;
+  }
+
+  function readRepeatRule() {
+    const pattern = els.repeatPattern.value;
+    if (pattern === "none") return null;
+
+    const interval = Math.min(
+      30,
+      Math.max(1, Number(els.repeatInterval.value) || 1)
+    );
+
+    return {
+      pattern,
+      interval,
+      unit: els.repeatUnit.value,
+      until: els.repeatUntil.value || addDays(currentDay(), 60),
+    };
+  }
+
+  /* ---------- Repeat UI ---------- */
+  function updateRepeatUI() {
+    const pattern = els.repeatPattern.value;
+    const repeating = pattern !== "none";
+
+    els.intervalRow.hidden = pattern !== "custom";
+    els.repeatUntilRow.hidden = !repeating;
+    els.repeatPreview.hidden = !repeating;
+
+    if (!repeating) return;
+
+    const baseDate = currentDay();
+    const rule = readRepeatRule();
+
+    if (rule.until < baseDate) {
+      els.repeatPreview.textContent = "End date is before the start date.";
+      return;
+    }
+
+    const count = buildOccurrences(
+      baseDate,
+      rule.pattern,
+      rule.interval,
+      rule.unit,
+      rule.until
+    ).length;
+
+    if (count > MAX_OCCURRENCES) {
+      els.repeatPreview.textContent = `⚠ More than ${MAX_OCCURRENCES} events — shorten the range.`;
+    } else {
+      els.repeatPreview.textContent = `Creates ${count} event${
+        count === 1 ? "" : "s"
+      } · ${prettyDate(baseDate)} → ${prettyDate(rule.until)}`;
+    }
+  }
+
+  function resetRepeatUI() {
+    els.repeatUntil.min = currentDay();
+    els.repeatUntil.value = addDays(currentDay(), 60);
+    updateRepeatUI();
+  }
+
+  /* Keep the repeat window sane when the day changes */
+  function syncRepeatDates() {
+    const day = currentDay();
+    els.repeatUntil.min = day;
+    if (!els.repeatUntil.value || els.repeatUntil.value < day) {
+      els.repeatUntil.value = addDays(day, 60);
+    }
+    updateRepeatUI();
+  }
+
   /* ---------- Form feedback ---------- */
   function showError(message) {
     els.error.textContent = message;
@@ -190,23 +324,50 @@
 
     const title = document.createElement("p");
     title.className = "event-title";
-    title.textContent = ev.title;
+
+    if (ev.seriesId) {
+      const badge = document.createElement("span");
+      badge.className = "event-badge";
+      badge.textContent = "🔁";
+      badge.title = "Repeating event";
+      title.appendChild(badge);
+    }
+
+    title.appendChild(document.createTextNode(ev.title));
+    info.appendChild(title);
+
+    if (ev.description) {
+      const desc = document.createElement("p");
+      desc.className = "event-desc";
+      desc.textContent = ev.description;
+      info.appendChild(desc);
+    }
 
     const meta = document.createElement("p");
     meta.className = "event-meta";
     meta.textContent = `${formatTime(ev.start)} – ${formatTime(ev.end)} · ${durationText(
       ev
     )}`;
-
-    info.append(title, meta);
+    info.appendChild(meta);
 
     const del = document.createElement("button");
     del.type = "button";
     del.className = "delete-btn";
     del.textContent = "✕";
     del.setAttribute("aria-label", `Delete ${ev.title}`);
+
     del.addEventListener("click", () => {
-      events = events.filter((item) => item.id !== ev.id);
+      if (ev.seriesId) {
+        const total = events.filter((e) => e.seriesId === ev.seriesId).length;
+        const deleteAll = window.confirm(
+          `"${ev.title}" repeats (${total} occurrence${total === 1 ? "" : "s"}).\n\nOK = delete the whole series\nCancel = delete only this one`
+        );
+        events = deleteAll
+          ? events.filter((e) => e.seriesId !== ev.seriesId)
+          : events.filter((e) => e.id !== ev.id);
+      } else {
+        events = events.filter((e) => e.id !== ev.id);
+      }
       saveEvents();
       render();
     });
@@ -234,54 +395,107 @@
     event.preventDefault();
 
     const title = els.title.value.trim();
+    const description = els.description.value.trim();
     const start = els.start.value;
     const end = els.end.value;
+    const baseDate = currentDay();
+    const rule = readRepeatRule();
 
     if (!title) return showError("Please add a title.");
     if (!start || !end) return showError("Please pick a start and end time.");
     if (start === end) return showError("Start and end time cannot be the same.");
 
-    events.push({
-      id: uid(),
-      date: currentDay(),
-      title,
-      start,
-      end,
-      category: els.category.value,
-    });
+    let dates = [baseDate];
+
+    if (rule) {
+      if (rule.until < baseDate) {
+        return showError("The repeat end date can't be before the start date.");
+      }
+
+      dates = buildOccurrences(
+        baseDate,
+        rule.pattern,
+        rule.interval,
+        rule.unit,
+        rule.until
+      );
+
+      if (!dates.length) return showError("That repeat rule produces no events.");
+      if (dates.length > MAX_OCCURRENCES) {
+        return showError(
+          `That rule creates more than ${MAX_OCCURRENCES} events — shorten the range.`
+        );
+      }
+    }
+
+    const seriesId = rule ? uid() : null;
+
+    for (const date of dates) {
+      events.push({
+        id: uid(),
+        date,
+        title,
+        description,
+        start,
+        end,
+        category: els.category.value,
+        seriesId,
+        repeat: rule,
+      });
+    }
 
     saveEvents();
     els.form.reset();
     setDefaultTimes();
+    resetRepeatUI();
     hideError();
     render();
     els.title.focus();
   });
 
-  [els.title, els.start, els.end].forEach((field) =>
-    field.addEventListener("input", hideError)
-  );
+  [
+    els.title,
+    els.start,
+    els.end,
+    els.repeatPattern,
+    els.repeatInterval,
+    els.repeatUnit,
+    els.repeatUntil,
+  ].forEach((field) => {
+    field.addEventListener("input", () => {
+      hideError();
+      updateRepeatUI();
+    });
+    field.addEventListener("change", () => {
+      hideError();
+      updateRepeatUI();
+    });
+  });
 
   els.prevDay.addEventListener("click", () => {
     els.datePicker.value = addDays(currentDay(), -1);
+    syncRepeatDates();
     hideError();
     render();
   });
 
   els.nextDay.addEventListener("click", () => {
     els.datePicker.value = addDays(currentDay(), 1);
+    syncRepeatDates();
     hideError();
     render();
   });
 
   els.todayBtn.addEventListener("click", () => {
     els.datePicker.value = toISO(new Date());
+    syncRepeatDates();
     hideError();
     render();
     scrollToRelevantHour();
   });
 
   els.datePicker.addEventListener("change", () => {
+    syncRepeatDates();
     hideError();
     render();
   });
@@ -305,6 +519,7 @@
   function init() {
     els.datePicker.value = toISO(new Date());
     setDefaultTimes();
+    resetRepeatUI();
     render();
     scrollToRelevantHour();
   }
