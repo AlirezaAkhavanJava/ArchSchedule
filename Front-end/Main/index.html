@@ -6,19 +6,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Analog Clock</title>
+
+  <!-- toggle script for switching between Dark mode and Light mode -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (!t) {
+          t = window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light" : "dark";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.style.colorScheme = t;
+      } catch (e) { }
+    })();
+  </script>
   <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="/Global/themes/themes.css" />
 </head>
 
 <body>
 
 
-  <header class="topbar">
-    <h1>Scheduler</h1>
-    <div class="topbar-actions">
-      <a class="back-btn" href="/Features/schedular/manage.html">Manage Tasks</a>
-      <a class="back-btn" href="/Main/index.html">← Back to Clock</a>
-    </div>
-  </header>
 
   <a class="nav-btn" href="/Features/schedular/scheduler.html">Scheduler</a>
 
@@ -38,6 +48,7 @@
     </div>
   </main>
 
+  <script src="/Global/themes/themes.js"></script>
   <script src="index.js"></script>
 </body>
 

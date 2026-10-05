@@ -1,12 +1,31 @@
 <!-- scheduler.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scheduler</title>
+
+  <!-- toggle script for switching between Dark mode and Light mode -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (!t) {
+          t = window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light" : "dark";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.style.colorScheme = t;
+      } catch (e) { }
+    })();
+  </script>
   <link rel="stylesheet" href="scheduler.css" />
+  <link rel="stylesheet" href="/Global/themes/themes.css" />
 </head>
+
 <body>
   <div class="app">
     <header class="topbar">
@@ -122,6 +141,8 @@
     </div>
   </div>
 
+  <script src="/Global/themes/themes.js"></script>
   <script src="scheduler.js"></script>
 </body>
+
 </html>
